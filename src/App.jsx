@@ -1,0 +1,326 @@
+import { useState } from "react";
+import { empresa } from "./data/empresa";
+import { vencimientosDGI2026 } from "./data/vencimientosDGI";
+import {
+  formatearFecha,
+    obtenerEstadoVencimiento,
+    obtenerProximoVencimiento,
+} from "./utils/fechas";
+
+const STORAGE_KEY = "contador_personal_obligaciones";
+
+export default function App() {
+  const proximoIVA = obtenerProximoVencimiento(vencimientosDGI2026);
+
+  const [obligaciones, setObligaciones] = useState(() => {
+    const guardadas = localStorage.getItem(STORAGE_KEY);
+
+    if (guardadas) {
+      return JSON.parse(guardadas);
+    }
+
+    return [
+      {
+        id: crypto.randomUUID(),
+                                                   titulo: "Revisar pago FONASA / BPS",
+                                                   tipo: "BPS",
+                                                   vencimiento: "2026-06-20",
+                                                   estado: "pendiente",
+                                                   notas: "Carga manual inicial. Ajustar según tu caso.",
+      },
+    ];
+  });
+
+  const [formulario, setFormulario] = useState({
+    titulo: "",
+    tipo: "Otro",
+    vencimiento: "",
+    notas: "",
+  });
+
+  function guardarObligaciones(nuevasObligaciones) {
+    setObligaciones(nuevasObligaciones);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nuevasObligaciones));
+  }
+
+  function agregarObligacion(evento) {
+    evento.preventDefault();
+
+    if (!formulario.titulo || !formulario.vencimiento) {
+      alert("Completá al menos título y vencimiento.");
+      return;
+    }
+
+    const nueva = {
+      id: crypto.randomUUID(),
+      ...formulario,
+      estado: "pendiente",
+    };
+
+    guardarObligaciones([nueva, ...obligaciones]);
+
+    setFormulario({
+      titulo: "",
+      tipo: "Otro",
+      vencimiento: "",
+      notas: "",
+    });
+  }
+
+  function cambiarEstado(id) {
+    const nuevas = obligaciones.map((item) => {
+      if (item.id === id) {
+        return {
+          ...item,
+          estado: item.estado === "pagado" ? "pendiente" : "pagado",
+        };
+      }
+
+      return item;
+    });
+
+    guardarObligaciones(nuevas);
+  }
+
+  function eliminarObligacion(id) {
+    const confirma = confirm("¿Seguro que querés eliminar esta obligación?");
+
+    if (!confirma) return;
+
+    const nuevas = obligaciones.filter((item) => item.id !== id);
+    guardarObligaciones(nuevas);
+  }
+
+  function abrirLink(url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  const estadoBPS = obtenerEstadoVencimiento(empresa.certificados.bps.hasta);
+  const estadoDGI = obtenerEstadoVencimiento(empresa.certificados.dgi.hasta);
+  const estadoIVA = obtenerEstadoVencimiento(proximoIVA.vencimiento);
+
+  return (
+    <main className="app">
+    <section className="hero">
+    <div>
+    <p className="mini">Contador personal Uruguay</p>
+    <h1>{empresa.nombre}</h1>
+    <p className="datos-principales">
+    RUT: {empresa.rut} · Empresa BPS: {empresa.empresaBPS}
+    </p>
+    </div>
+    </section>
+
+    <section className="grid">
+    <article className="card card-principal">
+    <div className="card-header">
+    <h2>Próximo IVA</h2>
+    <span className={estadoIVA.clase}>{estadoIVA.texto}</span>
+    </div>
+
+    <p>
+    <strong>Tipo:</strong> {proximoIVA.tipo}
+    </p>
+
+    <p>
+    <strong>Período:</strong> {proximoIVA.periodo}
+    </p>
+
+    <p>
+    <strong>Vencimiento:</strong>{" "}
+    {formatearFecha(proximoIVA.vencimiento)}
+    </p>
+
+    {proximoIVA.nota && <p className="nota">{proximoIVA.nota}</p>}
+
+    <button onClick={() => abrirLink(empresa.links.dgiCalendario2026)}>
+    Ver calendario DGI oficial
+    </button>
+    </article>
+
+    <article className="card">
+    <div className="card-header">
+    <h2>Certificado BPS</h2>
+    <span className={estadoBPS.clase}>{estadoBPS.texto}</span>
+    </div>
+
+    <p>
+    <strong>Desde:</strong>{" "}
+    {formatearFecha(empresa.certificados.bps.desde)}
+    </p>
+
+    <p>
+    <strong>Hasta:</strong>{" "}
+    {formatearFecha(empresa.certificados.bps.hasta)}
+    </p>
+
+    <p className="nota">
+    La descarga directa depende del formulario de BPS. La app abre la
+    consulta oficial y te muestra el RUT.
+    </p>
+
+    <button onClick={() => abrirLink(empresa.links.bpsConsulta)}>
+    Abrir consulta BPS
+    </button>
+    </article>
+
+    <article className="card">
+    <div className="card-header">
+    <h2>Certificado DGI</h2>
+    <span className={estadoDGI.clase}>{estadoDGI.texto}</span>
+    </div>
+
+    <p>
+    <strong>Desde:</strong>{" "}
+    {formatearFecha(empresa.certificados.dgi.desde)}
+    </p>
+
+    <p>
+    <strong>Hasta:</strong>{" "}
+    {formatearFecha(empresa.certificados.dgi.hasta)}
+    </p>
+
+    <p className="nota">
+    DGI requiere acceso con clave. No vamos a guardar usuario ni
+    contraseña en la app.
+    </p>
+
+    <button onClick={() => abrirLink(empresa.links.dgiCertificado)}>
+    Abrir certificado DGI
+    </button>
+    </article>
+    </section>
+
+    <section className="bloque">
+    <div className="bloque-header">
+    <h2>Vencimientos IVA 2026</h2>
+    <button
+    className="boton-secundario"
+    onClick={() => abrirLink(empresa.links.dgiCalendario2026)}
+    >
+    Fuente DGI
+    </button>
+    </div>
+
+    <div className="tabla">
+    {vencimientosDGI2026.map((item) => {
+      const estado = obtenerEstadoVencimiento(item.vencimiento);
+
+      return (
+        <article key={item.id} className="fila-tabla">
+        <div>
+        <strong>{item.periodo}</strong>
+        <p>{item.tipo}</p>
+        </div>
+
+        <div>
+        <span>Vence</span>
+        <strong>{formatearFecha(item.vencimiento)}</strong>
+        </div>
+
+        <span className={estado.clase}>{estado.texto}</span>
+        </article>
+      );
+    })}
+    </div>
+    </section>
+
+    <section className="bloque">
+    <h2>Obligaciones manuales</h2>
+
+    <form className="formulario" onSubmit={agregarObligacion}>
+    <input
+    type="text"
+    placeholder="Ej: pagar timbre profesional"
+    value={formulario.titulo}
+    onChange={(e) =>
+      setFormulario({ ...formulario, titulo: e.target.value })
+    }
+    />
+
+    <select
+    value={formulario.tipo}
+    onChange={(e) =>
+      setFormulario({ ...formulario, tipo: e.target.value })
+    }
+    >
+    <option value="DGI">DGI</option>
+    <option value="BPS">BPS</option>
+    <option value="FONASA">FONASA</option>
+    <option value="Otro">Otro</option>
+    </select>
+
+    <input
+    type="date"
+    value={formulario.vencimiento}
+    onChange={(e) =>
+      setFormulario({ ...formulario, vencimiento: e.target.value })
+    }
+    />
+
+    <input
+    type="text"
+    placeholder="Notas"
+    value={formulario.notas}
+    onChange={(e) =>
+      setFormulario({ ...formulario, notas: e.target.value })
+    }
+    />
+
+    <button type="submit">Agregar</button>
+    </form>
+
+    <div className="lista">
+    {obligaciones.map((item) => {
+      const estado = obtenerEstadoVencimiento(item.vencimiento);
+
+      return (
+        <article key={item.id} className="obligacion">
+        <div>
+        <div className="fila-titulo">
+        <h3>{item.titulo}</h3>
+        <span className="tag">{item.tipo}</span>
+        </div>
+
+        <p>
+        <strong>Vencimiento:</strong>{" "}
+        {formatearFecha(item.vencimiento)}
+        </p>
+
+        <p className={estado.clase}>{estado.texto}</p>
+
+        {item.notas && <p className="nota">{item.notas}</p>}
+        </div>
+
+        <div className="acciones">
+        <button
+        className={
+          item.estado === "pagado" ? "boton-pagado" : "boton-alerta"
+        }
+        onClick={() => cambiarEstado(item.id)}
+        >
+        {item.estado === "pagado" ? "Pagado" : "Pendiente"}
+        </button>
+
+        <button
+        className="boton-eliminar"
+        onClick={() => eliminarObligacion(item.id)}
+        >
+        Eliminar
+        </button>
+        </div>
+        </article>
+      );
+    })}
+    </div>
+    </section>
+
+    <footer>
+    <p>
+    Las fechas tributarias deben verificarse siempre contra fuentes
+    oficiales de DGI, BPS y FONASA.
+    </p>
+    </footer>
+    </main>
+  );
+}
