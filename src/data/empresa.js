@@ -2,6 +2,8 @@ export const empresa = {
     nombre: "FUMERO MESA JONATHAN",
     rut: "214105600019",
     empresaBPS: "3688078",
+    ci: "38539916",
+    fechaNacimiento: "1976-12-04",
 
     contacto: {
         email: "jfumero@anep.edu.uy",
@@ -29,5 +31,8 @@ export const empresa = {
 
         dgiCalendario2026:
         "https://www.gub.uy/direccion-general-impositiva/comunicacion/publicaciones/vencimientos-2026-calendario-general-actualizado",
+
+        fonasa:
+        "https://serviciosenlinea.bps.gub.uy/ServiciosEnLineaWeb/contenidosEmbebido?id=8782&ultIdx=true&version=4&ultldx=true",
     },
 };

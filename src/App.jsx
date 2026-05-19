@@ -1,17 +1,16 @@
 import { useState } from "react";
 import { empresa } from "./data/empresa";
-import { vencimientosDGI2026 } from "./data/vencimientosDGI";
+import ControlIVA from "./components/ControlIVA";
+import AutomatizacionBPS from "./components/AutomatizacionBPS";
+import CronogramaANEP from "./components/CronogramaANEP";
 import {
   formatearFecha,
     obtenerEstadoVencimiento,
-    obtenerProximoVencimiento,
 } from "./utils/fechas";
 
 const STORAGE_KEY = "contador_personal_obligaciones";
 
 export default function App() {
-  const proximoIVA = obtenerProximoVencimiento(vencimientosDGI2026);
-
   const [obligaciones, setObligaciones] = useState(() => {
     const guardadas = localStorage.getItem(STORAGE_KEY);
 
@@ -51,13 +50,13 @@ export default function App() {
       return;
     }
 
-    const nueva = {
+    const nuevaObligacion = {
       id: crypto.randomUUID(),
       ...formulario,
       estado: "pendiente",
     };
 
-    guardarObligaciones([nueva, ...obligaciones]);
+    guardarObligaciones([nuevaObligacion, ...obligaciones]);
 
     setFormulario({
       titulo: "",
@@ -68,7 +67,7 @@ export default function App() {
   }
 
   function cambiarEstado(id) {
-    const nuevas = obligaciones.map((item) => {
+    const nuevasObligaciones = obligaciones.map((item) => {
       if (item.id === id) {
         return {
           ...item,
@@ -79,7 +78,7 @@ export default function App() {
       return item;
     });
 
-    guardarObligaciones(nuevas);
+    guardarObligaciones(nuevasObligaciones);
   }
 
   function eliminarObligacion(id) {
@@ -87,8 +86,8 @@ export default function App() {
 
     if (!confirma) return;
 
-    const nuevas = obligaciones.filter((item) => item.id !== id);
-    guardarObligaciones(nuevas);
+    const nuevasObligaciones = obligaciones.filter((item) => item.id !== id);
+    guardarObligaciones(nuevasObligaciones);
   }
 
   function abrirLink(url) {
@@ -97,7 +96,6 @@ export default function App() {
 
   const estadoBPS = obtenerEstadoVencimiento(empresa.certificados.bps.hasta);
   const estadoDGI = obtenerEstadoVencimiento(empresa.certificados.dgi.hasta);
-  const estadoIVA = obtenerEstadoVencimiento(proximoIVA.vencimiento);
 
   return (
     <main className="app">
@@ -112,32 +110,6 @@ export default function App() {
     </section>
 
     <section className="grid">
-    <article className="card card-principal">
-    <div className="card-header">
-    <h2>Próximo IVA</h2>
-    <span className={estadoIVA.clase}>{estadoIVA.texto}</span>
-    </div>
-
-    <p>
-    <strong>Tipo:</strong> {proximoIVA.tipo}
-    </p>
-
-    <p>
-    <strong>Período:</strong> {proximoIVA.periodo}
-    </p>
-
-    <p>
-    <strong>Vencimiento:</strong>{" "}
-    {formatearFecha(proximoIVA.vencimiento)}
-    </p>
-
-    {proximoIVA.nota && <p className="nota">{proximoIVA.nota}</p>}
-
-    <button onClick={() => abrirLink(empresa.links.dgiCalendario2026)}>
-    Ver calendario DGI oficial
-    </button>
-    </article>
-
     <article className="card">
     <div className="card-header">
     <h2>Certificado BPS</h2>
@@ -152,11 +124,6 @@ export default function App() {
     <p>
     <strong>Hasta:</strong>{" "}
     {formatearFecha(empresa.certificados.bps.hasta)}
-    </p>
-
-    <p className="nota">
-    La descarga directa depende del formulario de BPS. La app abre la
-    consulta oficial y te muestra el RUT.
     </p>
 
     <button onClick={() => abrirLink(empresa.links.bpsConsulta)}>
@@ -180,50 +147,21 @@ export default function App() {
     {formatearFecha(empresa.certificados.dgi.hasta)}
     </p>
 
-    <p className="nota">
-    DGI requiere acceso con clave. No vamos a guardar usuario ni
-    contraseña en la app.
-    </p>
-
     <button onClick={() => abrirLink(empresa.links.dgiCertificado)}>
     Abrir certificado DGI
     </button>
+
+    <p className="nota">
+    Requiere clave. No guardar usuario ni contraseña en la app.
+    </p>
     </article>
     </section>
 
-    <section className="bloque">
-    <div className="bloque-header">
-    <h2>Vencimientos IVA 2026</h2>
-    <button
-    className="boton-secundario"
-    onClick={() => abrirLink(empresa.links.dgiCalendario2026)}
-    >
-    Fuente DGI
-    </button>
-    </div>
+    <AutomatizacionBPS />
 
-    <div className="tabla">
-    {vencimientosDGI2026.map((item) => {
-      const estado = obtenerEstadoVencimiento(item.vencimiento);
+    <ControlIVA />
 
-      return (
-        <article key={item.id} className="fila-tabla">
-        <div>
-        <strong>{item.periodo}</strong>
-        <p>{item.tipo}</p>
-        </div>
-
-        <div>
-        <span>Vence</span>
-        <strong>{formatearFecha(item.vencimiento)}</strong>
-        </div>
-
-        <span className={estado.clase}>{estado.texto}</span>
-        </article>
-      );
-    })}
-    </div>
-    </section>
+    <CronogramaANEP />
 
     <section className="bloque">
     <h2>Obligaciones manuales</h2>
@@ -247,6 +185,7 @@ export default function App() {
     <option value="DGI">DGI</option>
     <option value="BPS">BPS</option>
     <option value="FONASA">FONASA</option>
+    <option value="ANEP">ANEP</option>
     <option value="Otro">Otro</option>
     </select>
 
