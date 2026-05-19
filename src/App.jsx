@@ -87,7 +87,7 @@ export default function App() {
         return;
       }
 
-      const response = await fetch("/.netlify/functions/sendTelegram", {
+      const response = await fetch("/.netlify/functions/sendTelegram2", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -129,7 +129,7 @@ export default function App() {
         localStorage.getItem("contador_personal_anep_facturas") || "{}"
       );
 
-      const response = await fetch("/.netlify/functions/checkAlerts", {
+      const response = await fetch("/.netlify/functions/checkAlerts2", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
