@@ -365,6 +365,42 @@ button {
   flex-wrap: wrap;
 }
 
+
+/* Backup */
+
+.bloque-backup {
+  border-color: #fed7aa;
+}
+
+.backup-acciones {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.backup-acciones button,
+.boton-importar {
+  border: none;
+  border-radius: 16px;
+  background: #0f172a;
+  color: white;
+  padding: 13px 16px;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+}
+
+.boton-importar {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  background: #9a3412;
+}
+
+.boton-importar input {
+  display: none;
+}
+
 /* Obligaciones */
 
 .formulario {

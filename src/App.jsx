@@ -3,6 +3,7 @@ import { empresa } from "./data/empresa";
 import ControlIVA from "./components/ControlIVA";
 import AutomatizacionBPS from "./components/AutomatizacionBPS";
 import CronogramaANEP from "./components/CronogramaANEP";
+import BackupDatos from "./components/BackupDatos";
 import {
   formatearFecha,
     obtenerEstadoVencimiento,
@@ -268,6 +269,8 @@ export default function App() {
     <ControlIVA />
 
     <CronogramaANEP />
+
+    <BackupDatos />
 
     <section className="bloque">
     <h2>Obligaciones manuales</h2>
