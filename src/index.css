@@ -476,3 +476,8 @@ footer {
   font-weight: 900;
   margin-top: 14px;
 }
+.boton-hero.secundario {
+  margin-left: 10px;
+  background: #dbeafe;
+  color: #1e3a8a;
+}

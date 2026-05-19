@@ -1,0 +1,19 @@
+name: Revisar alertas contador personal
+
+on:
+  schedule:
+    # Todos los días a las 09:00 UTC aprox. Ajustar si querés otro horario.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Llamar Netlify Function checkAlerts
+        run: |
+          curl -sS -X POST "${{ secrets.NETLIFY_ALERTS_URL }}" \
+            -H "Content-Type: application/json" \
+            -H "x-alert-secret: ${{ secrets.ALERT_SECRET }}" \
+            -d '{}'

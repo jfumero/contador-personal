@@ -1,31 +1,65 @@
+function json(statusCode, body) {
+    return {
+        statusCode,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    };
+}
+
+function validarSecret(event) {
+    const configuredSecret = process.env.ALERT_SECRET;
+
+    if (!configuredSecret) {
+        return {
+            ok: false,
+            statusCode: 500,
+            message: "Falta configurar ALERT_SECRET en Netlify.",
+        };
+    }
+
+    const receivedSecret =
+        event.headers["x-alert-secret"] ||
+        event.headers["X-Alert-Secret"] ||
+        event.queryStringParameters?.secret;
+
+    if (!receivedSecret || receivedSecret !== configuredSecret) {
+        return {
+            ok: false,
+            statusCode: 401,
+            message: "No autorizado. Falta o no coincide ALERT_SECRET.",
+        };
+    }
+
+    return { ok: true };
+}
+
 export async function handler(event) {
     if (event.httpMethod !== "POST") {
-        return {
-            statusCode: 405,
-            body: JSON.stringify({ error: "Método no permitido" }),
-        };
+        return json(405, { error: "Método no permitido" });
+    }
+
+    const auth = validarSecret(event);
+
+    if (!auth.ok) {
+        return json(auth.statusCode, { error: auth.message });
     }
 
     try {
         const { message } = JSON.parse(event.body || "{}");
 
-        if (!message) {
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ error: "Falta el mensaje" }),
-            };
+        if (!message || typeof message !== "string") {
+            return json(400, { error: "Falta el mensaje" });
         }
 
         const token = process.env.TELEGRAM_BOT_TOKEN;
         const chatId = process.env.TELEGRAM_CHAT_ID;
 
         if (!token || !chatId) {
-            return {
-                statusCode: 500,
-                body: JSON.stringify({
-                    error: "Faltan variables TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID",
-                }),
-            };
+            return json(500, {
+                error: "Faltan variables TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID",
+            });
         }
 
         const response = await fetch(
@@ -45,29 +79,20 @@ export async function handler(event) {
         const data = await response.json();
 
         if (!response.ok) {
-            return {
-                statusCode: 500,
-                body: JSON.stringify({
-                    error: "Telegram rechazó el mensaje",
-                    detail: data,
-                }),
-            };
+            return json(500, {
+                error: "Telegram rechazó el mensaje",
+                detail: data,
+            });
         }
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                ok: true,
-                telegram: data,
-            }),
-        };
+        return json(200, {
+            ok: true,
+            telegram: data,
+        });
     } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                error: "Error enviando Telegram",
-                detail: error.message,
-            }),
-        };
+        return json(500, {
+            error: "Error enviando Telegram",
+            detail: error.message,
+        });
     }
 }
