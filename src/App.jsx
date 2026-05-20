@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -21,13 +21,16 @@ import AutomatizacionBPS from "./components/AutomatizacionBPS";
 import CronogramaANEP from "./components/CronogramaANEP";
 import BackupDatos from "./components/BackupDatos";
 import { formatearFecha, obtenerEstadoVencimiento } from "./utils/fechas";
+import {
+  cargarEstadoCloud,
+  iniciarSincronizacionCloud,
+} from "./lib/cloudSync";
 
 const STORAGE_KEY = "contador_personal_obligaciones";
 const ALERT_SECRET_STORAGE_KEY = "contador_personal_alert_secret";
 
 function obtenerAlertSecret() {
   const guardado = localStorage.getItem(ALERT_SECRET_STORAGE_KEY);
-
   if (guardado) return guardado;
 
   const ingresado = prompt(
@@ -37,7 +40,6 @@ function obtenerAlertSecret() {
   if (!ingresado) return null;
 
   localStorage.setItem(ALERT_SECRET_STORAGE_KEY, ingresado.trim());
-
   return ingresado.trim();
 }
 
@@ -51,32 +53,46 @@ function obtenerNombreCorto(nombre) {
   );
 }
 
+function obtenerObligacionesIniciales() {
+  const guardadas = localStorage.getItem(STORAGE_KEY);
+
+  if (guardadas) {
+    return JSON.parse(guardadas);
+  }
+
+  return [
+    {
+      id: crypto.randomUUID(),
+      titulo: "Revisar pago FONASA / BPS",
+      tipo: "BPS",
+      vencimiento: "2026-06-20",
+      estado: "pendiente",
+      notas: "Carga manual inicial. Ajustar según tu caso.",
+    },
+  ];
+}
+
 export default function App() {
-  const [obligaciones, setObligaciones] = useState(() => {
-    const guardadas = localStorage.getItem(STORAGE_KEY);
-
-    if (guardadas) {
-      return JSON.parse(guardadas);
-    }
-
-    return [
-      {
-        id: crypto.randomUUID(),
-                                                   titulo: "Revisar pago FONASA / BPS",
-                                                   tipo: "BPS",
-                                                   vencimiento: "2026-06-20",
-                                                   estado: "pendiente",
-                                                   notas: "Carga manual inicial. Ajustar según tu caso.",
-      },
-    ];
-  });
-
+  const [cloudReady, setCloudReady] = useState(false);
+  const [obligaciones, setObligaciones] = useState([]);
   const [formulario, setFormulario] = useState({
     titulo: "",
     tipo: "Otro",
     vencimiento: "",
     notas: "",
   });
+
+  useEffect(() => {
+    async function sincronizar() {
+      iniciarSincronizacionCloud();
+      await cargarEstadoCloud();
+
+      setObligaciones(obtenerObligacionesIniciales());
+      setCloudReady(true);
+    }
+
+    sincronizar();
+  }, []);
 
   async function probarTelegram() {
     try {
@@ -200,7 +216,6 @@ export default function App() {
 
   function eliminarObligacion(id) {
     const confirma = confirm("¿Seguro que querés eliminar esta obligación?");
-
     if (!confirma) return;
 
     const nuevasObligaciones = obligaciones.filter((item) => item.id !== id);
@@ -230,11 +245,23 @@ export default function App() {
 
   const nombreCorto = obtenerNombreCorto(empresa.nombre);
 
+  if (!cloudReady) {
+    return (
+      <main className="dashboard-shell">
+      <section className="main-panel">
+      <h2>Sincronizando datos...</h2>
+      <p>Cargando información desde Supabase.</p>
+      </section>
+      </main>
+    );
+  }
+
   return (
     <main className="dashboard-shell">
     <aside className="sidebar">
     <div className="brand">
     <div className="brand-icon">CP</div>
+
     <div>
     <h1>Contador Personal</h1>
     <p>Sistema de gestión</p>
@@ -367,8 +394,8 @@ export default function App() {
 
       <div>
       <p>Backup de datos</p>
-      <h3>Local</h3>
-      <span>Exportación JSON disponible</span>
+      <h3>Cloud</h3>
+      <span>Sincronizado con Supabase</span>
       </div>
       </article>
       </section>
