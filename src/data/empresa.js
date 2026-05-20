@@ -5,6 +5,30 @@ export const empresa = {
     ci: "38539916",
     fechaNacimiento: "1976-12-04",
 
+    perfilBPS: {
+        tipoEmpresa: "Empresa Unipersonal",
+        relacionLaboral: "Patrono unipersonal",
+        sueldoFicto: "Categoría 1",
+        aportacionPrincipal: "Industria y Comercio",
+        aportacionSecundaria: "Servicios Personales",
+        industriaYComercioActiva: true,
+        serviciosPersonalesActivo: true,
+
+        salud: {
+            sistema: "SNS / FONASA",
+            tributa: true,
+            tipo: "Servicio Personal",
+            prestador: "CAAMEPA",
+            beneficiario: "Sin hijos y sin cónyuge/concubino",
+        },
+
+        giro: {
+            codigo: "62090",
+            descripcion:
+            "Otras actividades de tecnología de información y servicio de computadoras",
+        },
+    },
+
     contacto: {
         email: "jfumero@anep.edu.uy",
         celular: "098125212",

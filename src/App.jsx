@@ -13,6 +13,10 @@ import {
   Shield,
   BellRing,
   FileCheck2,
+  Building2,
+  HeartPulse,
+  BriefcaseBusiness,
+  BadgeCheck,
 } from "lucide-react";
 
 import { empresa } from "./data/empresa";
@@ -21,6 +25,7 @@ import AutomatizacionBPS from "./components/AutomatizacionBPS";
 import CronogramaANEP from "./components/CronogramaANEP";
 import BackupDatos from "./components/BackupDatos";
 import { formatearFecha, obtenerEstadoVencimiento } from "./utils/fechas";
+
 import {
   cargarEstadoCloud,
   iniciarSincronizacionCloud,
@@ -31,6 +36,7 @@ const ALERT_SECRET_STORAGE_KEY = "contador_personal_alert_secret";
 
 function obtenerAlertSecret() {
   const guardado = localStorage.getItem(ALERT_SECRET_STORAGE_KEY);
+
   if (guardado) return guardado;
 
   const ingresado = prompt(
@@ -40,6 +46,7 @@ function obtenerAlertSecret() {
   if (!ingresado) return null;
 
   localStorage.setItem(ALERT_SECRET_STORAGE_KEY, ingresado.trim());
+
   return ingresado.trim();
 }
 
@@ -63,11 +70,19 @@ function obtenerObligacionesIniciales() {
   return [
     {
       id: crypto.randomUUID(),
-      titulo: "Revisar pago FONASA / BPS",
+      titulo: "Pagar BPS mensual",
       tipo: "BPS",
-      vencimiento: "2026-06-20",
+      vencimiento: "2026-06-19",
       estado: "pendiente",
-      notas: "Carga manual inicial. Ajustar según tu caso.",
+      notas: "Aportes de Industria y Comercio.",
+    },
+    {
+      id: crypto.randomUUID(),
+      titulo: "Pagar SNS / FONASA",
+      tipo: "SNS",
+      vencimiento: "2026-06-22",
+      estado: "pendiente",
+      notas: "Salud por Servicios Personales. Prestador: CAAMEPA.",
     },
   ];
 }
@@ -75,6 +90,7 @@ function obtenerObligacionesIniciales() {
 export default function App() {
   const [cloudReady, setCloudReady] = useState(false);
   const [obligaciones, setObligaciones] = useState([]);
+
   const [formulario, setFormulario] = useState({
     titulo: "",
     tipo: "Otro",
@@ -85,9 +101,11 @@ export default function App() {
   useEffect(() => {
     async function sincronizar() {
       iniciarSincronizacionCloud();
+
       await cargarEstadoCloud();
 
       setObligaciones(obtenerObligacionesIniciales());
+
       setCloudReady(true);
     }
 
@@ -216,6 +234,7 @@ export default function App() {
 
   function eliminarObligacion(id) {
     const confirma = confirm("¿Seguro que querés eliminar esta obligación?");
+
     if (!confirma) return;
 
     const nuevasObligaciones = obligaciones.filter((item) => item.id !== id);
@@ -264,7 +283,7 @@ export default function App() {
 
     <div>
     <h1>Contador Personal</h1>
-    <p>Sistema de gestión</p>
+    <p>Sistema tributario personal</p>
     </div>
     </div>
 
@@ -272,6 +291,11 @@ export default function App() {
     <a className="active" href="#dashboard">
     <LayoutDashboard size={20} />
     Dashboard
+    </a>
+
+    <a href="#perfil-bps">
+    <BadgeCheck size={20} />
+    Perfil BPS
     </a>
 
     <a href="#certificados">
@@ -286,7 +310,7 @@ export default function App() {
 
     <a href="#bps">
     <Users size={20} />
-    BPS / FONASA
+    BPS / SNS
     </a>
 
     <a href="#anep">
@@ -296,7 +320,7 @@ export default function App() {
 
     <a href="#backup">
     <Database size={20} />
-    Backup & Datos
+    Backup
     </a>
 
     <a href="#obligaciones">
@@ -309,12 +333,12 @@ export default function App() {
     <div className="avatar">FJ</div>
     <h2>{empresa.nombre}</h2>
     <p>RUT: {empresa.rut}</p>
-    <span>Monotributista</span>
+    <span>{empresa.perfilBPS?.tipoEmpresa || "Empresa"}</span>
     </div>
 
     <div className="version-card">
     <p>Versión</p>
-    <strong>2.1.0</strong>
+    <strong>2.3.0</strong>
     </div>
     </aside>
 
@@ -322,7 +346,7 @@ export default function App() {
     <header className="topbar">
     <div>
     <h2>¡Hola, {nombreCorto}! 👋</h2>
-    <p>Aquí tenés el estado general de tu gestión contable.</p>
+    <p>Estado general tributario, BPS y salud.</p>
     </div>
 
     <div className="quick-status">
@@ -393,14 +417,106 @@ export default function App() {
       </div>
 
       <div>
-      <p>Backup de datos</p>
-      <h3>Cloud</h3>
-      <span>Sincronizado con Supabase</span>
+      <p>Sincronización cloud</p>
+      <h3>Activa</h3>
+      <span>Supabase conectado</span>
       </div>
       </article>
       </section>
 
       <section className="content-grid">
+      <section className="module-card perfil-bps-card" id="perfil-bps">
+      <div className="module-title">
+      <div className="module-icon green-soft">
+      <BadgeCheck size={24} />
+      </div>
+
+      <div>
+      <h2>Perfil BPS / Salud</h2>
+      <p>Situación registral y cobertura SNS / FONASA</p>
+      </div>
+      </div>
+
+      <div className="perfil-grid">
+      <article className="perfil-item">
+      <div className="perfil-item-icon">
+      <Building2 size={20} />
+      </div>
+
+      <div>
+      <span>Tipo de empresa</span>
+      <strong>{empresa.perfilBPS?.tipoEmpresa}</strong>
+      </div>
+      </article>
+
+      <article className="perfil-item">
+      <div className="perfil-item-icon">
+      <BriefcaseBusiness size={20} />
+      </div>
+
+      <div>
+      <span>Aportación principal</span>
+      <strong>{empresa.perfilBPS?.aportacionPrincipal}</strong>
+      </div>
+      </article>
+
+      <article className="perfil-item">
+      <div className="perfil-item-icon">
+      <Users size={20} />
+      </div>
+
+      <div>
+      <span>Relación laboral</span>
+      <strong>{empresa.perfilBPS?.relacionLaboral}</strong>
+      </div>
+      </article>
+
+      <article className="perfil-item">
+      <div className="perfil-item-icon">
+      <ShieldCheck size={20} />
+      </div>
+
+      <div>
+      <span>Sueldo ficto</span>
+      <strong>{empresa.perfilBPS?.sueldoFicto}</strong>
+      </div>
+      </article>
+
+      <article className="perfil-item perfil-item-wide">
+      <div className="perfil-item-icon salud">
+      <HeartPulse size={20} />
+      </div>
+
+      <div>
+      <span>Salud</span>
+      <strong>
+      {empresa.perfilBPS?.salud?.sistema} ·{" "}
+      {empresa.perfilBPS?.salud?.prestador}
+      </strong>
+
+      <p>
+      Tributa SNS por {empresa.perfilBPS?.salud?.tipo}.{" "}
+      {empresa.perfilBPS?.salud?.beneficiario}.
+      </p>
+      </div>
+      </article>
+
+      <article className="perfil-item perfil-item-wide">
+      <div className="perfil-item-icon">
+      <PieChart size={20} />
+      </div>
+
+      <div>
+      <span>Giro principal</span>
+      <strong>
+      {empresa.perfilBPS?.giro?.codigo} ·{" "}
+      {empresa.perfilBPS?.giro?.descripcion}
+      </strong>
+      </div>
+      </article>
+      </div>
+      </section>
+
       <section className="module-card certificados-card" id="certificados">
       <div className="module-title">
       <div className="module-icon purple-soft">
@@ -497,7 +613,8 @@ export default function App() {
       >
       <option value="DGI">DGI</option>
       <option value="BPS">BPS</option>
-      <option value="FONASA">FONASA</option>
+      <option value="SNS">SNS / FONASA</option>
+      <option value="FONASA">FONASA anual</option>
       <option value="ANEP">ANEP</option>
       <option value="Otro">Otro</option>
       </select>
