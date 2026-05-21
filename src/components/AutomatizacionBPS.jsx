@@ -22,7 +22,7 @@ function generarScriptTampermonkey(config) {
     return `// ==UserScript==
     // @name         BPS - FONASA AUTO FULL
     // @namespace    bps-fonasa-auto
-    // @version      1.5
+    // @version      1.6
     // @description  Automatiza flujo completo FONASA BPS
     // @match        https://*.bps.gub.uy/*
     // @match        https://serviciosenlinea.bps.gub.uy/*
@@ -281,7 +281,14 @@ export default function AutomatizacionBPS() {
 
         if (guardado) {
             try {
-                return JSON.parse(guardado);
+                return {
+                    usarMesAnteriorAutomatico: true,
+                    autoAvanzar: true,
+                    autoConfirmar: true,
+                    autoDescargarPDF: true,
+                    impuesto: "IRPF",
+                    ...JSON.parse(guardado),
+                };
             } catch {
                 localStorage.removeItem(STORAGE_KEY);
             }
@@ -327,32 +334,14 @@ export default function AutomatizacionBPS() {
         window.open(empresa.links.fonasa, "_blank", "noopener,noreferrer");
     }
 
-    const jsonConfig = JSON.stringify(config, null, 2);
     const scriptCompleto = generarScriptTampermonkey(config);
-    const bloqueConfig = `const CONFIG = ${JSON.stringify(
-        {
-            empresa: config.empresa,
-            rut: config.rut,
-            documento: config.documento,
-            nacimiento: config.nacimiento,
-            impuesto: config.impuesto,
-            monto: config.monto,
-            usarMesAnteriorAutomatico: config.usarMesAnteriorAutomatico,
-            periodoManual: config.periodo,
-            autoAvanzar: config.autoAvanzar,
-            autoConfirmar: config.autoConfirmar,
-            autoDescargarPDF: config.autoDescargarPDF,
-        },
-        null,
-        2
-    )};`;
 
     return (
         <section className="bloque bloque-automatizacion">
         <div className="bloque-header">
         <div>
         <p className="mini oscuro">Automatización BPS</p>
-        <h2>Motor FONASA</h2>
+        <h2>Generador FONASA para PC</h2>
         </div>
 
         <button className="boton-secundario" onClick={abrirBPS}>
@@ -361,8 +350,9 @@ export default function AutomatizacionBPS() {
         </div>
 
         <p className="nota">
-        Configurá los datos de la factura FONASA. Podés copiar el script
-        completo para Tampermonkey o solo el bloque CONFIG.
+        Este módulo está pensado para usar en computadora con
+        Tampermonkey. La app solo prepara el script; la generación real
+        del boleto se hace dentro de la web de BPS.
         </p>
 
         <div className="automatizacion-grid">
@@ -403,25 +393,12 @@ export default function AutomatizacionBPS() {
         </label>
 
         <label>
-        Período manual
+        Período
         <input
         value={config.periodo}
         onChange={(e) => actualizar("periodo", e.target.value)}
         disabled={config.usarMesAnteriorAutomatico}
         />
-        </label>
-
-        <label>
-        Impuesto
-        <select
-        value={config.impuesto}
-        onChange={(e) =>
-            actualizar("impuesto", e.target.value)
-        }
-        >
-        <option value="IRPF">IRPF</option>
-        <option value="IRAE">IRAE</option>
-        </select>
         </label>
 
         <label>
@@ -431,17 +408,26 @@ export default function AutomatizacionBPS() {
         onChange={(e) => actualizar("monto", e.target.value)}
         />
         </label>
-
-        <label>
-        Fecha de pago
-        <input
-        value={config.fechaPago}
-        onChange={(e) =>
-            actualizar("fechaPago", e.target.value)
-        }
-        />
-        </label>
         </div>
+
+        <div className="acciones-automatizacion">
+        <button onClick={() => copiar(scriptCompleto)}>
+        Copiar script Tampermonkey
+        </button>
+
+        <button onClick={abrirBPS}>Abrir BPS</button>
+        </div>
+
+        <details style={{ marginTop: "18px" }}>
+        <summary
+        style={{
+            cursor: "pointer",
+            fontWeight: 900,
+            color: "#344054",
+        }}
+        >
+        Opciones avanzadas
+        </summary>
 
         <div className="checks">
         <label>
@@ -496,28 +482,45 @@ export default function AutomatizacionBPS() {
         type="checkbox"
         checked={config.autoDescargarPDF}
         onChange={(e) =>
-            actualizar("autoDescargarPDF", e.target.checked)
+            actualizar(
+                "autoDescargarPDF",
+                e.target.checked
+            )
         }
         />
         Descargar PDF automáticamente
         </label>
         </div>
 
-        <div className="acciones-automatizacion">
-        <button onClick={() => copiar(scriptCompleto)}>
-        Copiar script Tampermonkey completo
-        </button>
+        <div className="automatizacion-grid">
+        <label>
+        Impuesto
+        <select
+        value={config.impuesto}
+        onChange={(e) =>
+            actualizar("impuesto", e.target.value)
+        }
+        >
+        <option value="IRPF">IRPF</option>
+        <option value="IRAE">IRAE</option>
+        </select>
+        </label>
 
-        <button onClick={() => copiar(bloqueConfig)}>
-        Copiar bloque CONFIG
-        </button>
-
-        <button onClick={() => copiar(jsonConfig)}>
-        Copiar configuración JSON
-        </button>
+        <label>
+        Fecha de pago
+        <input
+        value={config.fechaPago}
+        onChange={(e) =>
+            actualizar("fechaPago", e.target.value)
+        }
+        />
+        </label>
         </div>
 
-        <pre className="preview-config">{jsonConfig}</pre>
+        <pre className="preview-config">
+        {JSON.stringify(config, null, 2)}
+        </pre>
+        </details>
         </section>
     );
 }
