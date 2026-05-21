@@ -7,10 +7,12 @@ const KEYS = [
 "contador_personal_iva_pagos",
 "contador_personal_anep_facturas",
 "contador_personal_fonasa_config",
+"contador_personal_bps_pagos",
 ];
 
 let timeoutId = null;
 let sincronizando = false;
+let iniciado = false;
 
 function leerEstadoLocal() {
     const data = {};
@@ -33,6 +35,7 @@ function leerEstadoLocal() {
 function aplicarEstadoLocal(data) {
     Object.entries(data || {}).forEach(([key, value]) => {
         if (!KEYS.includes(key)) return;
+
         localStorage.setItem(key, JSON.stringify(value));
     });
 }
@@ -44,15 +47,18 @@ export async function guardarEstadoCloud() {
 
     const { error } = await supabase
     .from("app_state")
-    .upsert({
-        id: CLOUD_ID,
+    .update({
         data,
         updated_at: new Date().toISOString(),
-    });
+    })
+    .eq("id", CLOUD_ID);
 
     if (error) {
         console.error("Error guardando en Supabase:", error);
+        return;
     }
+
+    console.log("Estado guardado en Supabase");
 }
 
 export function guardarEstadoCloudDebounced() {
@@ -96,6 +102,10 @@ export async function cargarEstadoCloud() {
 }
 
 export function iniciarSincronizacionCloud() {
+    if (iniciado) return;
+
+    iniciado = true;
+
     const originalSetItem = localStorage.setItem.bind(localStorage);
     const originalRemoveItem = localStorage.removeItem.bind(localStorage);
 

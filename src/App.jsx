@@ -24,6 +24,7 @@ import ControlIVA from "./components/ControlIVA";
 import AutomatizacionBPS from "./components/AutomatizacionBPS";
 import CronogramaANEP from "./components/CronogramaANEP";
 import BackupDatos from "./components/BackupDatos";
+import AlertasBPS from "./components/AlertasBPS";
 import { formatearFecha, obtenerEstadoVencimiento } from "./utils/fechas";
 
 import {
@@ -72,15 +73,15 @@ function obtenerObligacionesIniciales() {
       id: crypto.randomUUID(),
       titulo: "Pagar BPS mensual",
       tipo: "BPS",
-      vencimiento: "2026-06-19",
+      vencimiento: "2026-06-22",
       estado: "pendiente",
-      notas: "Aportes de Industria y Comercio.",
+      notas: "Cobranza Descentralizada - Industria y Comercio.",
     },
     {
       id: crypto.randomUUID(),
       titulo: "Pagar SNS / FONASA",
       tipo: "SNS",
-      vencimiento: "2026-06-22",
+      vencimiento: "2026-06-24",
       estado: "pendiente",
       notas: "Salud por Servicios Personales. Prestador: CAAMEPA.",
     },
@@ -163,6 +164,10 @@ export default function App() {
         localStorage.getItem("contador_personal_anep_facturas") || "{}"
       );
 
+      const pagosBPS = JSON.parse(
+        localStorage.getItem("contador_personal_bps_pagos") || "{}"
+      );
+
       const response = await fetch("/.netlify/functions/checkAlerts2", {
         method: "POST",
         headers: {
@@ -172,6 +177,7 @@ export default function App() {
         body: JSON.stringify({
           pagosIVA,
           facturasANEP,
+          pagosBPS,
         }),
       });
 
@@ -298,6 +304,11 @@ export default function App() {
     Perfil BPS
     </a>
 
+    <a href="#alertas-bps">
+    <HeartPulse size={20} />
+    BPS / FONASA
+    </a>
+
     <a href="#certificados">
     <ShieldCheck size={20} />
     Certificados
@@ -310,7 +321,7 @@ export default function App() {
 
     <a href="#bps">
     <Users size={20} />
-    BPS / SNS
+    Automatización
     </a>
 
     <a href="#anep">
@@ -338,7 +349,7 @@ export default function App() {
 
     <div className="version-card">
     <p>Versión</p>
-    <strong>2.3.0</strong>
+    <strong>2.4.0</strong>
     </div>
     </aside>
 
@@ -515,6 +526,10 @@ export default function App() {
       </div>
       </article>
       </div>
+      </section>
+
+      <section className="module-card module-wide" id="alertas-bps">
+      <AlertasBPS />
       </section>
 
       <section className="module-card certificados-card" id="certificados">
