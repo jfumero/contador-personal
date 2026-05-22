@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { cronogramaANEP2026 } from "../data/cronogramaANEP2026";
+import { obtenerAnioANEPActivo, obtenerCronogramaANEP } from "../data/vencimientos/anep";
 import { formatearFecha, obtenerEstadoVencimiento } from "../utils/fechas";
 
 const STORAGE_KEY = "contador_personal_anep_facturas";
 
 export default function CronogramaANEP() {
+  const anioANEP = obtenerAnioANEPActivo();
+  const cronogramaANEP = obtenerCronogramaANEP(anioANEP);
   const [mostrarDetalle, setMostrarDetalle] = useState(false);
 
   const [facturas, setFacturas] = useState(() => {
@@ -37,7 +39,7 @@ export default function CronogramaANEP() {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    const activo = cronogramaANEP2026.find((item) => {
+    const activo = cronogramaANEP.find((item) => {
       const inicio = new Date(item.inicio + "T00:00:00");
       const fin = new Date(item.fin + "T00:00:00");
       return hoy >= inicio && hoy <= fin;
@@ -45,12 +47,12 @@ export default function CronogramaANEP() {
 
     if (activo) return activo;
 
-    const proximo = cronogramaANEP2026.find((item) => {
+    const proximo = cronogramaANEP.find((item) => {
       const fin = new Date(item.fin + "T00:00:00");
       return fin >= hoy;
     });
 
-    return proximo || cronogramaANEP2026[cronogramaANEP2026.length - 1];
+    return proximo || cronogramaANEP[cronogramaANEP.length - 1];
   }
 
   const actual = obtenerPeriodoActual();
@@ -76,7 +78,7 @@ export default function CronogramaANEP() {
       <article className="anep-resumen">
         <div>
           <p className="mini oscuro">Período actual / próximo</p>
-          <h3>{actual.mes} 2026</h3>
+          <h3>{actual.mes} {anioANEP}</h3>
 
           <p>
             Fecha de factura desde: <strong>{formatearFecha(actual.inicio)}</strong>
@@ -104,7 +106,7 @@ export default function CronogramaANEP() {
 
       {mostrarDetalle && (
         <div className="anep-lista">
-          {cronogramaANEP2026.map((item) => {
+          {cronogramaANEP.map((item) => {
             const facturado = facturas[item.id];
             const estadoMes = obtenerEstadoVencimiento(item.fin);
 

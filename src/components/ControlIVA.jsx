@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { empresa } from "../data/empresa";
-import { vencimientosDGI2026 } from "../data/vencimientosDGI";
+import { obtenerAnioDGIActivo, obtenerVencimientosDGI } from "../data/vencimientos/dgi";
 import {
     formatearFecha,
         obtenerEstadoVencimiento,
@@ -10,6 +10,8 @@ import {
 const STORAGE_KEY = "contador_personal_iva_pagos";
 
 export default function ControlIVA() {
+    const anioDGI = obtenerAnioDGIActivo();
+    const vencimientosDGI = obtenerVencimientosDGI(anioDGI);
     const [mostrarDetalle, setMostrarDetalle] = useState(false);
 
     const [pagosIVA, setPagosIVA] = useState(() => {
@@ -45,7 +47,7 @@ export default function ControlIVA() {
     }
 
     const pendientes =
-    vencimientosDGI2026.filter(
+    vencimientosDGI.filter(
         (item) => !pagosIVA[item.id]
     );
 
@@ -53,7 +55,7 @@ export default function ControlIVA() {
     obtenerProximoVencimiento(pendientes);
 
     const cantidadPagos =
-    vencimientosDGI2026.length -
+    vencimientosDGI.length -
     pendientes.length;
 
     return (
@@ -136,7 +138,7 @@ export default function ControlIVA() {
         <div className="iva-mini-footer">
         <span>
         {cantidadPagos} de{" "}
-        {vencimientosDGI2026.length}{" "}
+        {vencimientosDGI.length}{" "}
         bimestres pagos
         </span>
 
@@ -155,7 +157,7 @@ export default function ControlIVA() {
 
             {mostrarDetalle && (
                 <div className="iva-lista">
-                {vencimientosDGI2026.map((item) => {
+                {vencimientosDGI.map((item) => {
                     const pago =
                     pagosIVA[item.id];
 

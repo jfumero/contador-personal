@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Building2, HeartPulse, CalendarDays } from "lucide-react";
-import { vencimientosBPS2026 } from "../data/vencimientosBPS2026";
+import { obtenerAnioBPSActivo, obtenerVencimientosBPS } from "../data/vencimientos/bps";
 import { formatearFecha, obtenerEstadoVencimiento } from "../utils/fechas";
 
 const STORAGE_KEY = "contador_personal_bps_pagos";
@@ -33,6 +33,8 @@ function construirClave(tipo, periodo) {
 }
 
 export default function AlertasBPS() {
+    const anioBPS = obtenerAnioBPSActivo();
+    const vencimientosBPS = obtenerVencimientosBPS(anioBPS);
     const [pagos, setPagos] = useState(() => obtenerPagosGuardados());
     const [mostrarDetalle, setMostrarDetalle] = useState(false);
 
@@ -42,7 +44,7 @@ export default function AlertasBPS() {
 
     const proximoBPS = useMemo(() => {
         return obtenerProximoPendiente(
-            vencimientosBPS2026.cobranzaDescentralizada.meses,
+            vencimientosBPS.cobranzaDescentralizada.meses,
             pagos,
             "bps"
         );
@@ -50,7 +52,7 @@ export default function AlertasBPS() {
 
     const proximoSNS = useMemo(() => {
         return obtenerProximoPendiente(
-            vencimientosBPS2026.snisServiciosPersonales.meses,
+            vencimientosBPS.snisServiciosPersonales.meses,
             pagos,
             "sns"
         );
@@ -118,7 +120,7 @@ export default function AlertasBPS() {
         <p className="mini">Alertas BPS / Salud</p>
         <h2>BPS mensual y SNS / FONASA</h2>
         <p className="oscuro">
-        Control de vencimientos 2026 para Cobranza Descentralizada y SNS
+        Control de vencimientos del año activo para Cobranza Descentralizada y SNS
         Servicios Personales.
         </p>
         </div>
@@ -159,14 +161,14 @@ export default function AlertasBPS() {
         <p>
         Disponible desde:{" "}
         <strong>
-        {formatearFecha(vencimientosBPS2026.fonasaAnual.disponibleDesde)}
+        {formatearFecha(vencimientosBPS.fonasaAnual.disponibleDesde)}
         </strong>
         </p>
 
         <p>
         Vencimiento dígito 9:{" "}
         <strong>
-        {formatearFecha(vencimientosBPS2026.fonasaAnual.vencimiento)}
+        {formatearFecha(vencimientosBPS.fonasaAnual.vencimiento)}
         </strong>
         </p>
         </div>
@@ -180,7 +182,7 @@ export default function AlertasBPS() {
             <h3>Cobranza Descentralizada</h3>
 
             <div className="bps-lista">
-            {vencimientosBPS2026.cobranzaDescentralizada.meses.map((item) => {
+            {vencimientosBPS.cobranzaDescentralizada.meses.map((item) => {
                 const clave = construirClave("bps", item.periodo);
                 const pago = pagos[clave];
 
@@ -211,7 +213,7 @@ export default function AlertasBPS() {
             <h3>SNS / FONASA</h3>
 
             <div className="bps-lista">
-            {vencimientosBPS2026.snisServiciosPersonales.meses.map((item) => {
+            {vencimientosBPS.snisServiciosPersonales.meses.map((item) => {
                 const clave = construirClave("sns", item.periodo);
                 const pago = pagos[clave];
 
