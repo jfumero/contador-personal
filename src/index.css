@@ -1227,3 +1227,15 @@ footer {
     flex-direction: column;
   }
 }
+
+/* Acción interna para copiar scripts Tampermonkey */
+.acceso-boton.accion {
+  border-style: dashed;
+  border-color: #cbd5e1;
+  background: linear-gradient(135deg, #f8fafc, #ffffff);
+}
+
+.acceso-boton.accion .acceso-boton-icono {
+  background: #f1f5f9;
+  color: #334155;
+}
