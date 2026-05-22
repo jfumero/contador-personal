@@ -17,7 +17,6 @@ import {
   HeartPulse,
   BriefcaseBusiness,
   BadgeCheck,
-  Settings,
 } from "lucide-react";
 
 import { empresa } from "./data/empresa";
@@ -26,6 +25,7 @@ import AutomatizacionBPS from "./components/AutomatizacionBPS";
 import CronogramaANEP from "./components/CronogramaANEP";
 import BackupDatos from "./components/BackupDatos";
 import AlertasBPS from "./components/AlertasBPS";
+import AccesosRapidos from "./components/AccesosRapidos";
 import { formatearFecha, obtenerEstadoVencimiento } from "./utils/fechas";
 
 import {
@@ -300,19 +300,19 @@ export default function App() {
     Dashboard
     </a>
 
-    <a href="#empresa">
-    <Building2 size={20} />
-    Empresa
+    <a href="#accesos">
+    <ShieldCheck size={20} />
+    Accesos
     </a>
 
-    <a href="#bps-fonasa">
+    <a href="#perfil-bps">
+    <BadgeCheck size={20} />
+    Perfil BPS
+    </a>
+
+    <a href="#alertas-bps">
     <HeartPulse size={20} />
     BPS / FONASA
-    </a>
-
-    <a href="#dgi-iva">
-    <PieChart size={20} />
-    DGI / IVA
     </a>
 
     <a href="#certificados">
@@ -320,14 +320,24 @@ export default function App() {
     Certificados
     </a>
 
+    <a href="#iva">
+    <PieChart size={20} />
+    IVA
+    </a>
+
+    <a href="#bps">
+    <Users size={20} />
+    Automatización
+    </a>
+
     <a href="#anep">
     <CalendarDays size={20} />
     ANEP
     </a>
 
-    <a href="#herramientas">
-    <Settings size={20} />
-    Herramientas
+    <a href="#backup">
+    <Database size={20} />
+    Backup
     </a>
 
     <a href="#obligaciones">
@@ -345,7 +355,7 @@ export default function App() {
 
     <div className="version-card">
     <p>Versión</p>
-    <strong>2.5.0</strong>
+    <strong>2.4.0</strong>
     </div>
     </aside>
 
@@ -353,7 +363,7 @@ export default function App() {
     <header className="topbar">
     <div>
     <h2>¡Hola, {nombreCorto}! 👋</h2>
-    <p>Panel tributario personal organizado por áreas.</p>
+    <p>Estado general tributario, BPS y salud.</p>
     </div>
 
     <div className="quick-status">
@@ -431,16 +441,20 @@ export default function App() {
       </article>
       </section>
 
+      <section className="module-card module-wide accesos-panel-superior" id="accesos">
+      <AccesosRapidos />
+      </section>
+
       <section className="content-grid">
-      <section className="module-card perfil-bps-card" id="empresa">
+      <section className="module-card perfil-bps-card" id="perfil-bps">
       <div className="module-title">
       <div className="module-icon green-soft">
       <BadgeCheck size={24} />
       </div>
 
       <div>
-      <h2>Empresa y perfil tributario</h2>
-      <p>Datos fijos, actividad, aportación y cobertura de salud.</p>
+      <h2>Perfil BPS / Salud</h2>
+      <p>Situación registral y cobertura SNS / FONASA</p>
       </div>
       </div>
 
@@ -524,65 +538,8 @@ export default function App() {
       </div>
       </section>
 
-      <section className="module-card module-wide" id="bps-fonasa">
-      <div className="module-title">
-      <div className="module-icon green-soft">
-      <HeartPulse size={24} />
-      </div>
-
-      <div>
-      <h2>BPS / FONASA</h2>
-      <p>Vencimientos, pagos, SNS/FONASA y generación de boleto.</p>
-      </div>
-      </div>
-
+      <section className="module-card module-wide" id="alertas-bps">
       <AlertasBPS />
-
-      <div style={{ marginTop: "22px" }}>
-      <AutomatizacionBPS />
-      </div>
-
-      <div style={{ marginTop: "18px" }}>
-      <button onClick={() => abrirLink(empresa.links.bpsConsulta)}>
-      Abrir renovación BPS
-      </button>
-      </div>
-      </section>
-
-      <section className="module-card" id="dgi-iva">
-      <div className="module-title">
-      <div className="module-icon purple-soft">
-      <PieChart size={24} />
-      </div>
-
-      <div>
-      <h2>DGI / IVA</h2>
-      <p>IVA bimestral, pagos y certificado DGI.</p>
-      </div>
-      </div>
-
-      <ControlIVA />
-
-      <div style={{ marginTop: "18px" }}>
-      <article className="certificate-row">
-      <div>
-      <strong>Certificado DGI</strong>
-      <p>
-      Desde: {formatearFecha(empresa.certificados.dgi.desde)}
-      </p>
-      <p>Hasta: {formatearFecha(empresa.certificados.dgi.hasta)}</p>
-      </div>
-
-      <span className={estadoDGI.clase}>{estadoDGI.texto}</span>
-      </article>
-
-      <button
-      className="button-light"
-      onClick={() => abrirLink(empresa.links.dgiCertificado)}
-      >
-      Abrir renovación DGI
-      </button>
-      </div>
       </section>
 
       <section className="module-card certificados-card" id="certificados">
@@ -593,7 +550,7 @@ export default function App() {
 
       <div>
       <h2>Certificados</h2>
-      <p>Resumen general de certificados BPS y DGI.</p>
+      <p>Administrá tus certificados digitales</p>
       </div>
       </div>
 
@@ -629,47 +586,21 @@ export default function App() {
       </button>
       </section>
 
-      <section className="module-card" id="anep">
-      <div className="module-title">
-      <div className="module-icon orange-soft">
-      <CalendarDays size={24} />
+      <div className="module-card module-wide" id="bps">
+      <AutomatizacionBPS />
       </div>
 
-      <div>
-      <h2>ANEP</h2>
-      <p>Cronograma, facturas y control de pagos.</p>
-      </div>
+      <div className="module-card" id="iva">
+      <ControlIVA />
       </div>
 
+      <div className="module-card" id="anep">
       <CronogramaANEP />
-      </section>
-
-      <section className="module-card" id="herramientas">
-      <div className="module-title">
-      <div className="module-icon gray-soft">
-      <Settings size={24} />
       </div>
 
-      <div>
-      <h2>Herramientas</h2>
-      <p>Backup, Telegram, Supabase y revisión manual de alertas.</p>
-      </div>
-      </div>
-
-      <div className="acciones-automatizacion">
-      <button type="button" onClick={revisarAlertas}>
-      Revisar alertas ahora
-      </button>
-
-      <button type="button" onClick={probarTelegram}>
-      Probar Telegram
-      </button>
-      </div>
-
-      <div style={{ marginTop: "18px" }}>
+      <div className="module-card" id="backup">
       <BackupDatos />
       </div>
-      </section>
 
       <section className="module-card obligaciones-card" id="obligaciones">
       <div className="module-title">
@@ -679,7 +610,7 @@ export default function App() {
 
       <div>
       <h2>Obligaciones manuales</h2>
-      <p>Agregá obligaciones personalizadas.</p>
+      <p>Agregá obligaciones personalizadas</p>
       </div>
       </div>
 

@@ -47,6 +47,18 @@ export const empresa = {
     },
 
     links: {
+        dgiLogin:
+        "https://servicios.dgi.gub.uy/serviciosenlinea",
+
+        dgiAdelantosIVA:
+        "https://servicios.dgi.gub.uy/AnticiposDJ_FE/servlet/uy.gub.dgi.ant.present.trabajarconejercicios_wp",
+
+        dgiConsultaDJIRPF:
+        "https://servicios.dgi.gub.uy/serviciosenlinea/dgi--servicios-en-linea--declaracion-irpf-consulta",
+
+        bpsLogin:
+        "https://sso.bps.gub.uy/PortalServLineaWeb/inicio",
+
         bpsConsulta:
         "https://app1.bps.gub.uy/CertificadosConsultasAnonimasWeb/paginas/vigencia/resultadoConsultaVigencia.jsf",
 
