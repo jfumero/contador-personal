@@ -17,6 +17,8 @@ import {
   HeartPulse,
   BriefcaseBusiness,
   BadgeCheck,
+  LockKeyhole,
+  LogOut,
 } from "lucide-react";
 
 import { empresa } from "./data/empresa";
@@ -35,6 +37,8 @@ import {
 
 const STORAGE_KEY = "contador_personal_obligaciones";
 const ALERT_SECRET_STORAGE_KEY = "contador_personal_alert_secret";
+const AUTH_SESSION_KEY = "contador_personal_auth_ok";
+const APP_PASSWORD = import.meta.env.VITE_CONTADOR_PASSWORD || "contador2026";
 
 function obtenerAlertSecret() {
   const guardado = localStorage.getItem(ALERT_SECRET_STORAGE_KEY);
@@ -89,7 +93,68 @@ function obtenerObligacionesIniciales() {
   ];
 }
 
+
+function PantallaLogin({ onLogin }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  function entrar(evento) {
+    evento.preventDefault();
+
+    if (password.trim() === APP_PASSWORD) {
+      localStorage.setItem(AUTH_SESSION_KEY, "ok");
+      onLogin();
+      return;
+    }
+
+    setError("Contraseña incorrecta.");
+    setPassword("");
+  }
+
+  return (
+    <main className="auth-shell">
+      <section className="auth-card">
+        <div className="auth-icon">
+          <LockKeyhole size={34} />
+        </div>
+
+        <p className="mini oscuro">Acceso privado</p>
+        <h1>Contador Personal</h1>
+        <p className="auth-text">
+          Ingresá la contraseña para acceder al dashboard tributario personal.
+        </p>
+
+        <form className="auth-form" onSubmit={entrar}>
+          <label>
+            Contraseña
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              placeholder="••••••••"
+              autoFocus
+            />
+          </label>
+
+          {error && <p className="auth-error">{error}</p>}
+
+          <button type="submit">Entrar</button>
+        </form>
+
+        <p className="auth-note">
+          Protección simple para evitar accesos casuales. No guarda claves de DGI,
+          BPS ni Supabase.
+        </p>
+      </section>
+    </main>
+  );
+}
+
 export default function App() {
+  const [autenticado, setAutenticado] = useState(() => localStorage.getItem(AUTH_SESSION_KEY) === "ok");
   const [cloudReady, setCloudReady] = useState(false);
   const [obligaciones, setObligaciones] = useState([]);
 
@@ -248,6 +313,11 @@ export default function App() {
     guardarObligaciones(nuevasObligaciones);
   }
 
+  function cerrarSesion() {
+    localStorage.removeItem(AUTH_SESSION_KEY);
+    setAutenticado(false);
+  }
+
   function abrirLink(url) {
     window.open(url, "_blank", "noopener,noreferrer");
   }
@@ -270,6 +340,10 @@ export default function App() {
   }, [obligacionesPendientes]);
 
   const nombreCorto = obtenerNombreCorto(empresa.nombre);
+
+  if (!autenticado) {
+    return <PantallaLogin onLogin={() => setAutenticado(true)} />;
+  }
 
   if (!cloudReady) {
     return (
@@ -355,8 +429,13 @@ export default function App() {
 
     <div className="version-card">
     <p>Versión</p>
-    <strong>2.4.0</strong>
+    <strong>2.7.0</strong>
     </div>
+
+    <button className="logout-button" type="button" onClick={cerrarSesion}>
+    <LogOut size={18} />
+    Cerrar sesión
+    </button>
     </aside>
 
     <section className="main-panel" id="dashboard">
